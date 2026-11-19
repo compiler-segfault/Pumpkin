@@ -1001,7 +1001,7 @@ pub trait EntityBase: Send + Sync + std::any::Any {
             ticks as f32 / 20.0,
         );
         if let Some(server) = entity.world.load().server.upgrade() {
-            server.plugin_manager.fire_blocking(&server, &mut event);
+            event = server.plugin_manager.fire_blocking(&server, event);
             if event.cancelled {
                 return;
             }
@@ -2261,7 +2261,7 @@ impl Entity {
                     self.entity_id,
                     air,
                 );
-            server.plugin_manager.fire_blocking(&server, &mut event);
+            event = server.plugin_manager.fire_blocking(&server, event);
             if event.cancelled {
                 return;
             }
@@ -2836,7 +2836,7 @@ impl Entity {
                 knockback,
                 cancelled: false,
             };
-        server.plugin_manager.fire_blocking(&server, &mut event);
+        event = server.plugin_manager.fire_blocking(&server, event);
         let mut knockback = event.knockback;
         let mut cancelled = event.cancelled;
         if let Some(attacker) = attacker {
@@ -2849,7 +2849,7 @@ impl Entity {
                 knockback.z,
             );
             event.cancelled = cancelled;
-            server.plugin_manager.fire_blocking(&server, &mut event);
+            event = server.plugin_manager.fire_blocking(&server, event);
             knockback = Vector3::new(event.x, event.y, event.z);
             cancelled = event.cancelled;
         }
@@ -3802,9 +3802,7 @@ impl Entity {
                 pos,
             );
         if let Some(server) = self.world.load().server.upgrade() {
-            server
-                .plugin_manager
-                .fire_blocking(&server, &mut portal_event);
+            portal_event = server.plugin_manager.fire_blocking(&server, portal_event);
         }
         if portal_event.cancelled {
             return;
@@ -4150,7 +4148,7 @@ impl Entity {
                     swimming,
                 );
             if let Some(server) = self.world.load().server.upgrade() {
-                server.plugin_manager.fire_blocking(&server, &mut event);
+                event = server.plugin_manager.fire_blocking(&server, event);
             }
             if event.cancelled {
                 return;
@@ -4591,9 +4589,7 @@ impl Entity {
                 (pose as u8).to_string(),
             );
         if let Some(server) = self.world.load().server.upgrade() {
-            server
-                .plugin_manager
-                .fire_blocking(&server, &mut pose_event);
+            pose_event = server.plugin_manager.fire_blocking(&server, pose_event);
             if pose_event.cancelled {
                 return;
             }
@@ -5000,7 +4996,7 @@ impl Entity {
                     holder_id: holder.get_entity().entity_id,
                     cancelled: false,
                 };
-            server.plugin_manager.fire_blocking(&server, &mut event);
+            event = server.plugin_manager.fire_blocking(&server, event);
             return !event.cancelled;
         }
         true
@@ -5068,7 +5064,7 @@ impl Entity {
                     self.entity_id,
                     "unleashed".to_string(),
                 );
-            server.plugin_manager.fire_blocking(&server, &mut event);
+            event = server.plugin_manager.fire_blocking(&server, event);
             if event.cancelled {
                 return false;
             }
@@ -5081,12 +5077,12 @@ impl Entity {
             && let Some(player) = holder.get_player()
             && let Some(player_arc) = world.get_player_by_uuid(player.gameprofile.id)
         {
-            let mut event = crate::plugin::api::events::player::player_unleash_entity::PlayerUnleashEntityEvent {
+            let event = crate::plugin::api::events::player::player_unleash_entity::PlayerUnleashEntityEvent {
                 player: player_arc,
                 entity_id: self.entity_id,
                 cancelled: false,
             };
-            server.plugin_manager.fire_blocking(&server, &mut event);
+            let event = server.plugin_manager.fire_blocking(&server, event);
             if event.cancelled {
                 return false;
             }
@@ -5144,22 +5140,21 @@ impl Entity {
             return false;
         }
         if let Some(server) = self.world.load().server.upgrade() {
-            let mut event =
-                crate::plugin::api::events::entity::entity_unleash::EntityUnleashEvent::new(
-                    self.entity_id,
-                    "unleashed".to_string(),
-                );
-            server.plugin_manager.fire_blocking(&server, &mut event);
+            let event = crate::plugin::api::events::entity::entity_unleash::EntityUnleashEvent::new(
+                self.entity_id,
+                "unleashed".to_string(),
+            );
+            let event = server.plugin_manager.fire_blocking(&server, event);
             if event.cancelled {
                 return false;
             }
             if let Some(player) = player {
-                let mut event = crate::plugin::api::events::player::player_unleash_entity::PlayerUnleashEntityEvent {
+                let event = crate::plugin::api::events::player::player_unleash_entity::PlayerUnleashEntityEvent {
                     player: player.clone(),
                     entity_id: self.entity_id,
                     cancelled: false,
                 };
-                server.plugin_manager.fire_blocking(&server, &mut event);
+                let event = server.plugin_manager.fire_blocking(&server, event);
                 if event.cancelled {
                     return false;
                 }
@@ -5611,12 +5606,8 @@ impl Entity {
                 passenger.get_entity().entity_id,
             );
         if let Some(server) = self.world.load().server.upgrade() {
-            server
-                .plugin_manager
-                .fire_blocking(&server, &mut mount_event);
-            server
-                .plugin_manager
-                .fire_blocking(&server, &mut vehicle_enter);
+            mount_event = server.plugin_manager.fire_blocking(&server, mount_event);
+            vehicle_enter = server.plugin_manager.fire_blocking(&server, vehicle_enter);
         }
         if mount_event.cancelled || vehicle_enter.cancelled {
             return;
@@ -5810,12 +5801,8 @@ impl Entity {
                 passenger_id,
             );
         if let Some(server) = self.world.load().server.upgrade() {
-            server
-                .plugin_manager
-                .fire_blocking(&server, &mut dismount_event);
-            server
-                .plugin_manager
-                .fire_blocking(&server, &mut vehicle_exit);
+            dismount_event = server.plugin_manager.fire_blocking(&server, dismount_event);
+            vehicle_exit = server.plugin_manager.fire_blocking(&server, vehicle_exit);
         }
         if dismount_event.cancelled || vehicle_exit.cancelled {
             return;
